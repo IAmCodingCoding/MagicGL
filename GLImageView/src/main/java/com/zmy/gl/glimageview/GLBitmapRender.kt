@@ -55,13 +55,18 @@ class GLBitmapRender : GLBaseRenderer() {
                 .put(vertexData).flip()
     }
 
+    private var width: Int = 0
+    private var height: Int = 0
     private val texture = intArrayOf(0)
     private var program: Int = 0
     private var fragmentShader = 0
     private var vertexShader = 0
     private val vao = intArrayOf(0)
     private val vbo = intArrayOf(0, 0)
-    var backgroundColor = Color.BLUE
+    var backgroundColor = Color.TRANSPARENT
+
+    var scaleType: ScaleType = ScaleType.FIT_CENTER
+        @Synchronized set
     var image: Bitmap? by Delegates.observable<Bitmap?>(null) { _, _, _ ->
         needStoreImage = true
     }
@@ -77,6 +82,7 @@ class GLBitmapRender : GLBaseRenderer() {
         @Synchronized set
 
     override fun onDrawFrame() {
+        handleScaleType()
         storeTexture()
         setTrans()
         glUseProgram(program)
@@ -86,11 +92,13 @@ class GLBitmapRender : GLBaseRenderer() {
         val a = Color.alpha(backgroundColor).toFloat() / 255F
         glClearColor(r, g, b, a)
         glClear(GL_COLOR_BUFFER_BIT)
-        glBindVertexArray(vao[0])
-        glBindTexture(GL_TEXTURE_2D, texture[0])
-        glDrawElements(GL_TRIANGLES, elementIndex.size, GL_UNSIGNED_INT, 0)
-        glBindVertexArray(0)
-        glBindTexture(GL_TEXTURE_2D, 0)
+        image?.let {
+            glBindVertexArray(vao[0])
+            glBindTexture(GL_TEXTURE_2D, texture[0])
+            glDrawElements(GL_TRIANGLES, elementIndex.size, GL_UNSIGNED_INT, 0)
+            glBindVertexArray(0)
+            glBindTexture(GL_TEXTURE_2D, 0)
+        }
     }
 
     @Synchronized
@@ -117,10 +125,148 @@ class GLBitmapRender : GLBaseRenderer() {
             }
     }
 
+    fun getImageWidth() = image?.width ?: 0
+    fun getImageHeight() = image?.height ?: 0
+
     override fun onSurfaceChanged(width: Int, height: Int) {
-        glViewport(0, 0, width, height)
+        this.width = width
+        this.height = height
     }
 
+    private fun handleScaleType() {
+        image?.let {
+            val imageWidth = it.width
+            val imageHeight = it.height
+            when (scaleType) {
+                ScaleType.FIT_XY -> glViewport(0, 0, width, height)
+                ScaleType.FIT_CENTER -> {
+                    if (imageWidth >= imageHeight) {
+                        val scale = width.toFloat() / imageWidth
+                        val scaleHeight = imageHeight * scale
+                        glViewport(
+                            0,
+                            (height - scaleHeight).toInt() / 2,
+                            width,
+                            scaleHeight.toInt()
+                        )
+                    } else {
+                        val scale = height.toFloat() / imageHeight
+                        val scaleWidth = imageWidth * scale
+                        glViewport(
+                            (width - scaleWidth).toInt() / 2,
+                            0,
+                            scaleWidth.toInt(),
+                            height
+                        )
+                    }
+                }
+                ScaleType.FIT_START -> {
+                    if (imageWidth >= imageHeight) {
+                        val scale = width.toFloat() / imageWidth
+                        val scaleHeight = imageHeight * scale
+                        glViewport(
+                            0,
+                            (height - scaleHeight).toInt(),
+                            width,
+                            scaleHeight.toInt()
+                        )
+                    } else {
+                        val scale = height.toFloat() / imageHeight
+                        val scaleWidth = imageWidth * scale
+                        glViewport(
+                            0,
+                            0,
+                            scaleWidth.toInt(),
+                            height
+                        )
+                    }
+                }
+                ScaleType.FIT_END -> {
+                    if (imageWidth >= imageHeight) {
+                        val scale = width.toFloat() / imageWidth
+                        val scaleHeight = imageHeight * scale
+                        glViewport(
+                            0,
+                            0,
+                            width,
+                            scaleHeight.toInt()
+                        )
+                    } else {
+                        val scale = height.toFloat() / imageHeight
+                        val scaleWidth = imageWidth * scale
+                        glViewport(
+                            (width - scaleWidth).toInt(),
+                            0,
+                            scaleWidth.toInt(),
+                            height
+                        )
+                    }
+                }
+                ScaleType.MATRIX -> {
+                    glViewport(0, height-imageHeight, imageWidth, imageHeight)
+                }
+                ScaleType.CENTER -> {
+                    glViewport(
+                        (width - imageWidth) / 2,
+                        (height - imageHeight) / 2,
+                        imageWidth,
+                        imageHeight
+                    )
+                }
+                ScaleType.CENTER_CROP -> {
+                    if (imageWidth <= imageHeight) {
+                        val scale = width.toFloat() / imageWidth
+                        val scaleHeight = imageHeight * scale
+                        glViewport(
+                            0,
+                            (height - scaleHeight).toInt() / 2,
+                            width,
+                            scaleHeight.toInt()
+                        )
+                    } else {
+                        val scale = height.toFloat() / imageHeight
+                        val scaleWidth = imageWidth * scale
+                        glViewport(
+                            (width - scaleWidth).toInt() / 2,
+                            0,
+                            scaleWidth.toInt(),
+                            height
+                        )
+                    }
+                }
+                ScaleType.CENTER_INSIDE -> {
+                    if (imageWidth >= imageHeight) {
+                        var scale = 1.0f
+                        if (imageWidth > width) {
+                            scale = width.toFloat() / imageWidth
+                        }
+                        val scaleWidth = imageWidth * scale
+                        val scaleHeight = imageHeight * scale
+                        glViewport(
+                            (width - scaleWidth).toInt() / 2,
+                            (height - scaleHeight).toInt() / 2,
+                            scaleWidth.toInt(),
+                            scaleHeight.toInt()
+                        )
+                    } else {
+                        var scale = 1.0f
+                        if (imageHeight > height) {
+                            scale = height.toFloat() / imageHeight
+                        }
+                        val scaleWidth = imageWidth * scale
+                        val scaleHeight = imageHeight * scale
+                        glViewport(
+                            (width - scaleWidth).toInt() / 2,
+                            (height - scaleHeight).toInt() / 2,
+                            scaleWidth.toInt(),
+                            scaleHeight.toInt()
+                        )
+                    }
+                }
+            }
+        }
+
+    }
 
     override fun onSurfaceCreated(config: EGLConfig?) {
         vertexShader = createShader(

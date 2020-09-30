@@ -2,6 +2,7 @@ package com.zmy.gl.demo
 
 
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -10,7 +11,7 @@ import com.zmy.gl.glimageview.GLImageView
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
-    private val src = arrayOf("test.jpg", "wall.jpg")
+    private val src = arrayOf("test.png","test.jpg")
     private var count = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity() {
                 val imageView = GLImageView(this)
                 val bm = BitmapFactory.decodeStream(assets.open(src[count++ % src.size]))
                 imageView.setImageBitmap(bm)
-                imageView.setRotate(10f)
+                imageView.setBackgroundColor(Color.parseColor("#99000000"))
                 container.addView(
                     imageView,
                     FrameLayout.LayoutParams(
