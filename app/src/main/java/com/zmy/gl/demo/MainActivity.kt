@@ -28,8 +28,8 @@ class MainActivity : AppCompatActivity() {
                 container.addView(
                     imageView,
                     FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
                     )
                 )
             }
