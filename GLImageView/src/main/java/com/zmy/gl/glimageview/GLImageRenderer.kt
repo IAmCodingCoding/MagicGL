@@ -1,19 +1,18 @@
 package com.zmy.gl.glimageview
 
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.opengl.EGLConfig
 import android.opengl.GLES30.*
-import android.opengl.GLUtils
 import android.opengl.Matrix
 import com.zmy.gl.gltextureview.render.GLBaseRenderer
+import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.properties.Delegates
 
-class GLImageRender : GLBaseRenderer() {
+open class GLImageRenderer : GLBaseRenderer() {
     companion object {
-        private val TAG = GLImageRender::class.java.simpleName
+        private val TAG = GLImageRenderer::class.java.simpleName
         private const val vertexSrc = "#version 300 es\n" +
                 "layout(location=0) in vec4 aPosition;\n" +
                 "layout(location=1) in vec2 texturePosition;\n" +
@@ -67,7 +66,8 @@ class GLImageRender : GLBaseRenderer() {
 
     var scaleType: ScaleType = ScaleType.FIT_CENTER
         @Synchronized set
-    var image: Bitmap? by Delegates.observable<Bitmap?>(null) { _, _, _ ->
+
+    var image: ImageData? by Delegates.observable<ImageData?>(null) { _, _, _ ->
         needStoreImage = true
     }
         @Synchronized set
@@ -112,6 +112,7 @@ class GLImageRender : GLBaseRenderer() {
                 Matrix.rotateM(matrix, 0, it, 0f, 0f, -1f)
                 glUniformMatrix4fv(location, 1, false, matrix, 0)
                 glUseProgram(0)
+                needStoreDegree = false
             }
     }
 
@@ -119,9 +120,24 @@ class GLImageRender : GLBaseRenderer() {
     private fun storeTexture() {
         image?.takeIf { needStoreImage }
             ?.let {
-                glBindTexture(GL_TEXTURE_2D, texture[0])
-                GLUtils.texImage2D(GL_TEXTURE_2D, 0, it, 0)
-                glBindTexture(GL_TEXTURE_2D, 0)
+                if (it.format != 0) {
+                    glBindTexture(GL_TEXTURE_2D, texture[0])
+                    it.buffer.position(0)
+                    glTexImage2D(
+                        GL_TEXTURE_2D,
+                        0,
+                        it.format,
+                        it.width,
+                        it.height,
+                        0,
+                        it.format,
+                        it.type,
+                        it.buffer
+                    )
+                    glBindTexture(GL_TEXTURE_2D, 0)
+                }
+                val error=glGetError()
+                needStoreImage = false
             }
     }
 
@@ -331,3 +347,5 @@ class GLImageRender : GLBaseRenderer() {
 
 
 }
+
+data class ImageData(val buffer: Buffer, val width: Int, val height: Int, val format: Int,val type:Int)

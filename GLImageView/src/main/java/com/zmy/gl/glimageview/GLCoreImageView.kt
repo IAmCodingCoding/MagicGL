@@ -12,7 +12,7 @@ import kotlin.math.min
 internal class GLCoreImageView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : GLTextureView(context, attrs, defStyleAttr) {
-    private var render = GLImageRender()
+    private var render = GLBitmapRenderer()
 
     init {
         isOpaque = false
@@ -52,7 +52,7 @@ internal class GLCoreImageView @JvmOverloads constructor(
     }
 
     fun setImageBitmap(image: Bitmap) {
-        render.image = image
+        render.setImage(image)
         requestRender()
     }
 
