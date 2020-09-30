@@ -2,13 +2,17 @@ package com.zmy.gl.gltextureview;
 
 import android.content.Context;
 import android.graphics.SurfaceTexture;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+
 import com.zmy.gl.gltextureview.egl.config.EGLConfigChooser;
-import com.zmy.gl.gltextureview.egl.config.RGB888EGLConfigChooser;
+import com.zmy.gl.gltextureview.egl.config.RGBA8888EGLConfigChooser;
 import com.zmy.gl.gltextureview.egl.context.DefaultContextFactory;
 import com.zmy.gl.gltextureview.egl.context.EGLContextFactory;
 import com.zmy.gl.gltextureview.egl.surface.DefaultWindowSurfaceFactory;
@@ -43,6 +47,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
         init();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public GLTextureView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         init();
@@ -53,20 +58,44 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
     }
 
     public void setGLESVersion(GLESVersion version) {
-        checkRenderThreadState();
         mGLESVersion = version;
+        reInitEGL();
     }
 
-    public void setEGLConfigChooser(EGLConfigChooser mEGLConfigChooser) {
+    private void reInitEGL() {
+        if (glThread != null) {
+            glThread.requestDestroy();
+            glThread = null;
+        }
+        if (render != null && getSurfaceTexture() != null) {
+            glThread = new GLThread(new Surface(getSurfaceTexture()), mEGLConfigChooser, mEGLContextFactory
+                    , mEGLWindowSurfaceFactory, render, getMeasuredWidth()
+                    , getMeasuredHeight());
+        }
+
+    }
+
+    public void setEGLConfigChooser(@NonNull EGLConfigChooser mEGLConfigChooser) {
         this.mEGLConfigChooser = mEGLConfigChooser;
+        reInitEGL();
     }
 
-    public void setEGLContextFactory(EGLContextFactory mEGLContextFactory) {
+    public void setEGLContextFactory(@NonNull EGLContextFactory mEGLContextFactory) {
         this.mEGLContextFactory = mEGLContextFactory;
+        reInitEGL();
     }
 
-    public void setEGLWindowSurfaceFactory(EGLWindowSurfaceFactory mEGLWindowSurfaceFactory) {
+    public void setEGLWindowSurfaceFactory(@NonNull EGLWindowSurfaceFactory mEGLWindowSurfaceFactory) {
         this.mEGLWindowSurfaceFactory = mEGLWindowSurfaceFactory;
+        if (glThread != null) {
+            glThread.requestDestroy();
+            glThread = null;
+        }
+        if (render != null && getSurfaceTexture() != null) {
+            glThread = new GLThread(new Surface(getSurfaceTexture()), mEGLConfigChooser, mEGLContextFactory
+                    , mEGLWindowSurfaceFactory, render, getMeasuredWidth()
+                    , getMeasuredHeight());
+        }
     }
 
 
@@ -84,7 +113,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
     public void setRender(Renderer render) {
         this.render = render;
         if (mEGLConfigChooser == null) {
-            mEGLConfigChooser = new RGB888EGLConfigChooser(mGLESVersion, true);
+            mEGLConfigChooser = new RGBA8888EGLConfigChooser(mGLESVersion, true);
         }
         if (mEGLContextFactory == null) {
             mEGLContextFactory = new DefaultContextFactory(mGLESVersion);

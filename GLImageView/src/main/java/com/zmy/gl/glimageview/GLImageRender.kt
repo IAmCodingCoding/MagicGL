@@ -11,9 +11,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.properties.Delegates
 
-class GLBitmapRender : GLBaseRenderer() {
+class GLImageRender : GLBaseRenderer() {
     companion object {
-        private val TAG = GLBitmapRender::class.java.simpleName
+        private val TAG = GLImageRender::class.java.simpleName
         private const val vertexSrc = "#version 300 es\n" +
                 "layout(location=0) in vec4 aPosition;\n" +
                 "layout(location=1) in vec2 texturePosition;\n" +
