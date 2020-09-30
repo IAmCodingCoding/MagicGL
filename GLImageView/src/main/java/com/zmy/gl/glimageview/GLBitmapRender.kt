@@ -61,7 +61,7 @@ class GLBitmapRender : GLBaseRenderer() {
     private var vertexShader = 0
     private val vao = intArrayOf(0)
     private val vbo = intArrayOf(0, 0)
-    var backgroundColor = Color.TRANSPARENT
+    var backgroundColor = Color.BLUE
     var image: Bitmap? by Delegates.observable<Bitmap?>(null) { _, _, _ ->
         needStoreImage = true
     }
@@ -80,12 +80,12 @@ class GLBitmapRender : GLBaseRenderer() {
         storeTexture()
         setTrans()
         glUseProgram(program)
-        glClear(GL_COLOR_BUFFER_BIT)
         val r = Color.red(backgroundColor).toFloat() / 255F
         val g = Color.green(backgroundColor).toFloat() / 255F
         val b = Color.blue(backgroundColor).toFloat() / 255F
         val a = Color.alpha(backgroundColor).toFloat() / 255F
         glClearColor(r, g, b, a)
+        glClear(GL_COLOR_BUFFER_BIT)
         glBindVertexArray(vao[0])
         glBindTexture(GL_TEXTURE_2D, texture[0])
         glDrawElements(GL_TRIANGLES, elementIndex.size, GL_UNSIGNED_INT, 0)

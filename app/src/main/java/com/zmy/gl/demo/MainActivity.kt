@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
                 val imageView = GLImageView(this)
                 val bm = BitmapFactory.decodeStream(assets.open(src[count++ % src.size]))
                 imageView.setImageBitmap(bm)
+                imageView.setRotate(10f)
                 container.addView(
                     imageView,
                     FrameLayout.LayoutParams(
