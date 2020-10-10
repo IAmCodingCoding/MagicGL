@@ -12,7 +12,10 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:layout_above="@+id/bt" />
-
+<com.zmy.gl.gltextureview.GLTextureView
+    android:id="@+id/texture_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
     <Button
         android:id="@+id/bt"
         android:layout_width="wrap_content"

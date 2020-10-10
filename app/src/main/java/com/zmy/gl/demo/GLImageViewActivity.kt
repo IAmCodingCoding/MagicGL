@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.zmy.gl.glimageview.GLImageView
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class GLImageViewActivity : AppCompatActivity() {
     private val src = arrayOf("test.png","test.jpg")
     private var count = 0
 
@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 val imageView = GLImageView(this)
                 val option=BitmapFactory.Options()
-                option.inPreferredConfig = Bitmap.Config.RGB_565;
+                option.inPreferredConfig = Bitmap.Config.RGB_565
                 val bm = BitmapFactory.decodeStream(assets.open(src[count++ % src.size]),null,option)
                 imageView.setImageBitmap(bm!!)
                 imageView.setBackgroundColor(Color.parseColor("#99000000"))
@@ -42,3 +42,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+

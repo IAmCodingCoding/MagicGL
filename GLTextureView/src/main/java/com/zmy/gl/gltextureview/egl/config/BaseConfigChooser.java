@@ -46,7 +46,7 @@ public abstract class BaseConfigChooser implements EGLConfigChooser {
     abstract EGLConfig chooseConfig(EGLDisplay display,
                                     EGLConfig[] configs);
 
-    private int[] filterConfigSpec(int[] configSpec) {
+    protected int[] filterConfigSpec(int[] configSpec) {
         if (mEGLContextClientVersion != 2 && mEGLContextClientVersion != 3) {
             return configSpec;
         }

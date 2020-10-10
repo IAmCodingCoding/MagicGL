@@ -140,7 +140,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
         if (LogSwitch.isLogOpened())
             Log.d(TAG, "onSurfaceTextureAvailable");
-        if (glThread == null)
+        if (glThread == null && render != null)
             glThread = new GLThread(new Surface(surface), mEGLConfigChooser, mEGLContextFactory
                     , mEGLWindowSurfaceFactory, render, width, height);
     }

@@ -15,13 +15,7 @@ public class DefaultWindowSurfaceFactory implements EGLWindowSurfaceFactory {
         try {
             result = EGL14.eglCreateWindowSurface(display, config, nativeWindow, null, 0);
         } catch (IllegalArgumentException e) {
-            // This exception indicates that the surface flinger surface
-            // is not valid. This can happen if the surface flinger surface has
-            // been torn down, but the application has not yet been
-            // notified via TextureView.SurfaceTextureListener.onSurfaceTextureDestroyed.
-            // In theory the application should be notified first,
-            // but in practice sometimes it is not. See b/4588890
-            Log.e(TAG, "eglCreateWindowSurface", e);
+            Log.e(TAG, Log.getStackTraceString(e));
         }
         return result;
     }

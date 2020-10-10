@@ -5,7 +5,7 @@ import android.opengl.GLES20.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class GLBitmapRenderer : GLImageRenderer() {
+open class GLBitmapRenderer : GLImageRenderer() {
 
     fun setImage(bitmap: Bitmap) {
         val buffer = ByteBuffer.allocateDirect(bitmap.byteCount).order(ByteOrder.nativeOrder())

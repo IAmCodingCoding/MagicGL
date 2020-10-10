@@ -136,9 +136,9 @@ open class GLImageRenderer : GLBaseRenderer() {
                     )
                     glBindTexture(GL_TEXTURE_2D, 0)
                 }
-                val error=glGetError()
                 needStoreImage = false
             }
+        glActiveTexture(GL_TEXTURE0)
     }
 
     fun getImageWidth() = image?.width ?: 0
@@ -301,18 +301,23 @@ open class GLImageRenderer : GLBaseRenderer() {
         needStoreImage = true
     }
 
-    private fun initTexture() {
+    open fun initTexture() {
+        glUseProgram(program)
         glGenTextures(1, texture, 0)
+        glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, texture[0])
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        val textureLocation = glGetUniformLocation(program, "sTexture")
+        glUniform1i(textureLocation, 0)
         glBindTexture(GL_TEXTURE_2D, 0)
+        glUseProgram(0)
     }
 
 
-    private fun initBuffers() {
+    open fun initBuffers() {
         glGenVertexArrays(1, vao, 0)
         glGenBuffers(2, vbo, 0)
         glBindVertexArray(vao[0])
@@ -348,4 +353,10 @@ open class GLImageRenderer : GLBaseRenderer() {
 
 }
 
-data class ImageData(val buffer: Buffer, val width: Int, val height: Int, val format: Int,val type:Int)
+data class ImageData(
+    val buffer: Buffer,
+    val width: Int,
+    val height: Int,
+    val format: Int,
+    val type: Int
+)

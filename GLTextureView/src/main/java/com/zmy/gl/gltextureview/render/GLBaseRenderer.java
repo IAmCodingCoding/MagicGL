@@ -20,7 +20,6 @@ import static android.opengl.GLES20.glValidateProgram;
 public abstract class GLBaseRenderer implements Renderer {
     private static final String TAG = GLBaseRenderer.class.getSimpleName();
 
-
     protected int createShader(int type, String src) {
         int shader = glCreateShader(type);
         glShaderSource(shader, src);
