@@ -27,9 +27,13 @@ class GLImageViewActivity : AppCompatActivity() {
                 bt.text="SHOW IMAGE"
             } else {
                 val imageView = GLImageView(this)
-                val option=BitmapFactory.Options()
+                val option = BitmapFactory.Options()
                 option.inPreferredConfig = Bitmap.Config.RGB_565
-                val bm = BitmapFactory.decodeStream(assets.open(src[count++ % src.size]),null,option)
+
+
+                val imageStream = assets.open(src[count++ % src.size])
+                val bm = BitmapFactory.decodeStream(imageStream, null, option)
+                imageStream.close()
                 imageView.setImageBitmap(bm!!)
                 imageView.setBackgroundColor(Color.parseColor("#99000000"))
                 container.addView(
@@ -39,7 +43,7 @@ class GLImageViewActivity : AppCompatActivity() {
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
                 )
-                bt.text="REMOVE IMAGE"
+                bt.text = "REMOVE IMAGE"
             }
         }
     }

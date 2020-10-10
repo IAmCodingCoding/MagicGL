@@ -22,7 +22,9 @@ class OffscreenRenderActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_offscreen_render)
         var render = TestRender()
-        val bm = BitmapFactory.decodeStream(assets.open("test.jpg"))
+        val imageStream=assets.open("test.jpg")
+        val bm = BitmapFactory.decodeStream(imageStream)
+        imageStream.close()
         render.setImage(bm)
         glThread = GLThread(
             null,
