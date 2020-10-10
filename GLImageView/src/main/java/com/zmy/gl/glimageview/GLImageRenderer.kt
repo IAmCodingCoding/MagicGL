@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.opengl.EGLConfig
 import android.opengl.GLES30.*
 import android.opengl.Matrix
+import com.zmy.gl.gltextureview.ConstantValue
 import com.zmy.gl.gltextureview.render.GLBaseRenderer
 import java.nio.Buffer
 import java.nio.ByteBuffer
@@ -30,11 +31,9 @@ open class GLImageRenderer : GLBaseRenderer() {
                 "void main() {\n" +
                 "    outColor=texture(sTexture,tPosition);\n" +
                 "}\n"
-        private const val SIZE_OF_FLOAT = 4
-        private const val SIZE_OF_INT = 4
         private val elementIndex = intArrayOf(0, 1, 2, 0, 2, 3)
         private val elementIndexBuffer =
-            ByteBuffer.allocateDirect(elementIndex.size * SIZE_OF_INT)
+            ByteBuffer.allocateDirect(elementIndex.size * ConstantValue.SIZE_OF_INT)
                 .order(ByteOrder.nativeOrder())
                 .asIntBuffer()
                 .put(elementIndex).flip()
@@ -48,7 +47,7 @@ open class GLImageRenderer : GLBaseRenderer() {
         )
 
         private val vertexBuffer =
-            ByteBuffer.allocateDirect(vertexData.size * SIZE_OF_FLOAT)
+            ByteBuffer.allocateDirect(vertexData.size * ConstantValue.SIZE_OF_FLOAT)
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer()
                 .put(vertexData).flip()
@@ -324,27 +323,27 @@ open class GLImageRenderer : GLBaseRenderer() {
         glBindBuffer(GL_ARRAY_BUFFER, vbo[0])
         glBufferData(
             GL_ARRAY_BUFFER,
-            vertexData.size * SIZE_OF_FLOAT,
+            vertexData.size * ConstantValue.SIZE_OF_FLOAT,
             vertexBuffer,
             GL_STATIC_DRAW
         )
         val aPosition = glGetAttribLocation(program, "aPosition")
         val texturePosition = glGetAttribLocation(program, "texturePosition")
-        glVertexAttribPointer(aPosition, 3, GL_FLOAT, false, 5 * SIZE_OF_FLOAT, 0)
+        glVertexAttribPointer(aPosition, 3, GL_FLOAT, false, 5 * ConstantValue.SIZE_OF_FLOAT, 0)
         glEnableVertexAttribArray(aPosition)
         glVertexAttribPointer(
             texturePosition,
             2,
             GL_FLOAT,
             false,
-            5 * SIZE_OF_FLOAT,
-            3 * SIZE_OF_FLOAT
+            5 * ConstantValue.SIZE_OF_FLOAT,
+            3 * ConstantValue.SIZE_OF_FLOAT
         )
         glEnableVertexAttribArray(texturePosition)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1])
         glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER, elementIndex.size * SIZE_OF_INT, elementIndexBuffer,
+            GL_ELEMENT_ARRAY_BUFFER, elementIndex.size * ConstantValue.SIZE_OF_INT, elementIndexBuffer,
             GL_STATIC_DRAW
         )
         glBindVertexArray(0)

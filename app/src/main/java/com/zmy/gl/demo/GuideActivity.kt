@@ -15,5 +15,8 @@ class GuideActivity : AppCompatActivity() {
         off_screen_render.setOnClickListener {
             startActivity(Intent(this, OffscreenRenderActivity::class.java))
         }
+        render_yuv.setOnClickListener {
+            startActivity(Intent(this, YUVActivity::class.java))
+        }
     }
 }

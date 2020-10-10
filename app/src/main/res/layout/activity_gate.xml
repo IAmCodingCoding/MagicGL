@@ -17,4 +17,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="OFF SCREEN RENDER" />
+    <Button
+        android:id="@+id/render_yuv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RENDER YUV" />
 </LinearLayout>

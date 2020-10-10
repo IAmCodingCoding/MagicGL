@@ -24,6 +24,7 @@ class GLImageViewActivity : AppCompatActivity() {
         bt.setOnClickListener {
             if (container.childCount > 0) {
                 container.removeAllViews()
+                bt.text="SHOW IMAGE"
             } else {
                 val imageView = GLImageView(this)
                 val option=BitmapFactory.Options()
@@ -38,6 +39,7 @@ class GLImageViewActivity : AppCompatActivity() {
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
                 )
+                bt.text="REMOVE IMAGE"
             }
         }
     }
