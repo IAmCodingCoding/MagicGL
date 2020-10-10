@@ -111,6 +111,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
     }
 
     public void setRender(Renderer render) {
+        checkRenderThreadState();
         this.render = render;
         if (mEGLConfigChooser == null) {
             mEGLConfigChooser = new RGBA8888EGLConfigChooser(mGLESVersion, true);
@@ -157,8 +158,10 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
         if (LogSwitch.isLogOpened())
             Log.d(TAG, "onSurfaceTextureDestroyed");
-        glThread.requestDestroy();
-        glThread = null;
+        if(glThread!=null){
+            glThread.requestDestroy();
+            glThread = null;
+        }
         return false;
     }
 

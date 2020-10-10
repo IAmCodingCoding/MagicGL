@@ -3,6 +3,7 @@ package com.zmy.gl.gltextureview;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -13,10 +14,12 @@ import com.zmy.gl.gltextureview.egl.surface.EGLWindowSurfaceFactory;
 import com.zmy.gl.gltextureview.render.Renderer;
 
 public class GLThread extends HandlerThread {
+    private static final String TAG = GLThread.class.getSimpleName();
     public static final int MSG_INIT_EGL = 0;
     public static final int MSG_RENDER = 1;
     public static final int MSG_RESIZE = 2;
     public static final int MSG_DESTROY = 3;
+    private static final int MSG_UPDATE_SURFACE = 4;
     private EGLHelper mEglHelper;
     private volatile boolean isQuit;
     private Handler handler;
@@ -30,7 +33,14 @@ public class GLThread extends HandlerThread {
                     EGLContextFactory mEGLContextFactory,
                     EGLWindowSurfaceFactory mEGLWindowSurfaceFactory,
                     Renderer render, int width, int height) {
-        super("GLTexture_GLThread");
+        this("GLTexture_GLThread", nativeWindow, mEGLConfigChooser, mEGLContextFactory, mEGLWindowSurfaceFactory, render, width, height);
+    }
+
+    public GLThread(String name, Object nativeWindow, EGLConfigChooser mEGLConfigChooser,
+                    EGLContextFactory mEGLContextFactory,
+                    EGLWindowSurfaceFactory mEGLWindowSurfaceFactory,
+                    Renderer render, int width, int height) {
+        super(name);
         this.render = render;
         this.mEGLConfigChooser = mEGLConfigChooser;
         this.mEGLContextFactory = mEGLContextFactory;
@@ -43,7 +53,14 @@ public class GLThread extends HandlerThread {
                     EGLContextFactory mEGLContextFactory,
                     EGLWindowSurfaceFactory mEGLWindowSurfaceFactory,
                     Renderer render, int width, int height, int priority) {
-        super("GLTexture_GLThread", priority);
+        this("GLTexture_GLThread", nativeWindow, mEGLConfigChooser, mEGLContextFactory, mEGLWindowSurfaceFactory, render, width, height, priority);
+    }
+
+    public GLThread(String name, Object nativeWindow, EGLConfigChooser mEGLConfigChooser,
+                    EGLContextFactory mEGLContextFactory,
+                    EGLWindowSurfaceFactory mEGLWindowSurfaceFactory,
+                    Renderer render, int width, int height, int priority) {
+        super(name, priority);
         this.render = render;
         this.mEGLConfigChooser = mEGLConfigChooser;
         this.mEGLContextFactory = mEGLContextFactory;
@@ -74,6 +91,16 @@ public class GLThread extends HandlerThread {
                             mEglHelper.swap();
                         }
                         break;
+                    case MSG_UPDATE_SURFACE: {
+                        mEglHelper.createSurface(msg.obj);
+                        if (render != null) {
+                            render.onSurfaceCreated(mEglHelper.getEglConfig());
+                            render.onSurfaceChanged(msg.arg1, msg.arg2);
+                            render.onDrawFrame();
+                            mEglHelper.swap();
+                        }
+                        break;
+                    }
                     case MSG_RESIZE:
                         if (render != null) {
                             render.onSurfaceChanged(msg.arg1, msg.arg2);
@@ -121,4 +148,13 @@ public class GLThread extends HandlerThread {
         if (isClear) clear();
         Message.obtain(handler, what, arg1, arg2, obj).sendToTarget();
     }
+
+    @Override
+    public void run() {
+        super.run();
+        if (LogSwitch.isLogOpened())
+            Log.d(TAG, "GLThread :" + this.getName() + " exit!");
+    }
+
+
 }

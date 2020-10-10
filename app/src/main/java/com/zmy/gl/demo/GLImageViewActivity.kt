@@ -11,7 +11,7 @@ import android.widget.FrameLayout
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.zmy.gl.glimageview.GLImageView
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_glimageview.*
 
 class GLImageViewActivity : AppCompatActivity() {
     private val src = arrayOf("test.png","test.jpg")
@@ -20,7 +20,7 @@ class GLImageViewActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_glimageview)
         bt.setOnClickListener {
             if (container.childCount > 0) {
                 container.removeAllViews()
