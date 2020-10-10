@@ -6,8 +6,8 @@ import android.opengl.GLES20.GL_FRAGMENT_SHADER
 import android.opengl.GLES30.*
 import android.opengl.Matrix
 import android.util.Log
-import com.zmy.gl.gltextureview.ConstantValue
-import com.zmy.gl.gltextureview.render.GLBaseRenderer
+import com.zmy.gl.base.ConstantValue
+import com.zmy.gl.base.render.GLBaseRenderer
 import java.nio.Buffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

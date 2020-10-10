@@ -6,12 +6,12 @@ import android.opengl.GLES20
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.zmy.gl.base.GLESVersion
+import com.zmy.gl.base.GLThread
+import com.zmy.gl.base.egl.config.PBufferConfigChooser
+import com.zmy.gl.base.egl.context.PBufferContextFactory
+import com.zmy.gl.base.egl.surface.PBufferSurfaceFactory
 import com.zmy.gl.glimageview.GLBitmapRenderer
-import com.zmy.gl.gltextureview.GLESVersion
-import com.zmy.gl.gltextureview.GLThread
-import com.zmy.gl.gltextureview.egl.config.PBufferConfigChooser
-import com.zmy.gl.gltextureview.egl.context.PBufferContextFactory
-import com.zmy.gl.gltextureview.egl.surface.PBufferSurfaceFactory
 import kotlinx.android.synthetic.main.activity_offscreen_render.*
 import java.nio.ByteBuffer
 

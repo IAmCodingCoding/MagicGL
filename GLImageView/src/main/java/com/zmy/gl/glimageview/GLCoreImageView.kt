@@ -4,8 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import com.zmy.gl.gltextureview.GLESVersion
-import com.zmy.gl.gltextureview.GLTextureView
+import com.zmy.gl.base.GLESVersion
+import com.zmy.gl.base.GLTextureView
 import kotlin.math.min
 
 

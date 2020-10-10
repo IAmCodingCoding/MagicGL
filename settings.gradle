@@ -1,4 +1,4 @@
 include ':YUVRenderer'
 include ':app'
 include ':GLImageView'
-include ':GLTextureView'
+include ':Base'
