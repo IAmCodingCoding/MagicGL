@@ -1,6 +1,6 @@
 package com.zmy.gl.base.render;
 
-import android.util.Log;
+import com.zmy.gl.base.LogSwitch;
 
 import static android.opengl.GLES20.GL_COMPILE_STATUS;
 import static android.opengl.GLES20.GL_LINK_STATUS;
@@ -28,7 +28,7 @@ public abstract class GLBaseRenderer implements Renderer {
         glGetShaderiv(shader, GL_COMPILE_STATUS, status, 0);
         if (status[0] == 0) {
             glDeleteShader(shader);
-            Log.d(TAG, "create Shader error:${glGetShaderInfoLog(shader)}");
+            LogSwitch.d(TAG, "create Shader error:${glGetShaderInfoLog(shader)}");
             return 0;
         }
         return shader;
@@ -45,13 +45,13 @@ public abstract class GLBaseRenderer implements Renderer {
         glDeleteShader(fragmentShader);
         if (status[0] == 0) {
             glDeleteProgram(program);
-            Log.e(TAG, "program link  error:${glGetProgramInfoLog(program)}");
+            LogSwitch.e(TAG, "program link  error:${glGetProgramInfoLog(program)}");
             return 0;
         }
         glValidateProgram(program);
         glGetProgramiv(program, GL_VALIDATE_STATUS, status, 0);
         if (status[0] == 0) {
-            Log.e(TAG, "validate link  error:${glGetProgramInfoLog(program)}");
+            LogSwitch.e(TAG, "validate link  error:${glGetProgramInfoLog(program)}");
             glDeleteProgram(program);
             return 0;
         }

@@ -4,10 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.zmy.gl.base.GLESVersion
 import com.zmy.gl.base.GLThread
+import com.zmy.gl.base.LogSwitch
 import com.zmy.gl.base.egl.config.PBufferConfigChooser
 import com.zmy.gl.base.egl.context.PBufferContextFactory
 import com.zmy.gl.base.egl.surface.PBufferSurfaceFactory
@@ -117,9 +117,9 @@ class OffscreenRenderActivity : AppCompatActivity() {
             )
             val status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
             if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-                Log.d("zmy", "init frame buffer error")
+                LogSwitch.d("zmy", "init frame buffer error")
             } else {
-                Log.d("zmy", "init frame buffer success")
+                LogSwitch.d("zmy", "init frame buffer success")
             }
         }
 

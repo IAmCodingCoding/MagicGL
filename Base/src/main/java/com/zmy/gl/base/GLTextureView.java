@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Surface;
 import android.view.TextureView;
 
@@ -139,8 +138,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        if (LogSwitch.isLogOpened())
-            Log.d(TAG, "onSurfaceTextureAvailable");
+        LogSwitch.d(TAG, "onSurfaceTextureAvailable");
         if (glThread == null && render != null)
             glThread = new GLThread(new Surface(surface), mEGLConfigChooser, mEGLContextFactory
                     , mEGLWindowSurfaceFactory, render, width, height);
@@ -148,8 +146,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        if (LogSwitch.isLogOpened())
-            Log.d(TAG, "onSurfaceTextureSizeChanged");
+        LogSwitch.d(TAG, "onSurfaceTextureSizeChanged");
         if(glThread!=null){
             glThread.requestResize(new Surface(surface),getMeasuredWidth(),getMeasuredHeight());
         }
@@ -157,8 +154,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
     @Override
     public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        if (LogSwitch.isLogOpened())
-            Log.d(TAG, "onSurfaceTextureDestroyed");
+        LogSwitch.d(TAG, "onSurfaceTextureDestroyed");
         if(glThread!=null){
             glThread.requestDestroy();
             glThread = null;
@@ -168,8 +164,7 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
 
     @Override
     public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-        if (LogSwitch.isLogOpened())
-            Log.d(TAG, "onSurfaceTextureUpdated");
+        LogSwitch.d(TAG, "onSurfaceTextureUpdated");
     }
 
 }

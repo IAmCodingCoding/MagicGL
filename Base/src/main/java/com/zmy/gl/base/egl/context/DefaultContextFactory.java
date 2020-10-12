@@ -4,9 +4,9 @@ import android.opengl.EGL14;
 import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
-import android.util.Log;
 
 import com.zmy.gl.base.GLESVersion;
+import com.zmy.gl.base.LogSwitch;
 import com.zmy.gl.base.egl.EGLHelper;
 
 public class DefaultContextFactory implements EGLContextFactory {
@@ -28,7 +28,7 @@ public class DefaultContextFactory implements EGLContextFactory {
     public void destroyContext(EGLDisplay display,
                                EGLContext context) {
         if (!EGL14.eglDestroyContext(display, context)) {
-            Log.e(TAG, "display:" + display + " context: " + context + "tid=" + Thread.currentThread().getId());
+            LogSwitch.e(TAG, "display:" + display + " context: " + context + "tid=" + Thread.currentThread().getId());
             EGLHelper.throwEglException("eglDestroyContex", EGL14.eglGetError());
         }
     }

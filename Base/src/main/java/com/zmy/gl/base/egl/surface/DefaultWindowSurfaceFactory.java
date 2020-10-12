@@ -4,7 +4,8 @@ import android.opengl.EGL14;
 import android.opengl.EGLConfig;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
-import android.util.Log;
+
+import com.zmy.gl.base.LogSwitch;
 
 public class DefaultWindowSurfaceFactory implements EGLWindowSurfaceFactory {
     private static final String TAG = DefaultWindowSurfaceFactory.class.getSimpleName();
@@ -15,7 +16,7 @@ public class DefaultWindowSurfaceFactory implements EGLWindowSurfaceFactory {
         try {
             result = EGL14.eglCreateWindowSurface(display, config, nativeWindow, null, 0);
         } catch (IllegalArgumentException e) {
-            Log.e(TAG, Log.getStackTraceString(e));
+            LogSwitch.e(TAG,"fail to create Window surface :",e);
         }
         return result;
     }

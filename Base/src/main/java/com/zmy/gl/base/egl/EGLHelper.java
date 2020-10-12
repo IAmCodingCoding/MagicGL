@@ -5,7 +5,6 @@ import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
-import android.util.Log;
 
 import com.zmy.gl.base.LogSwitch;
 import com.zmy.gl.base.egl.config.EGLConfigChooser;
@@ -73,15 +72,13 @@ public class EGLHelper {
 
     public static void throwEglException(String function, int error) {
         String message = formatEglError(function, error);
-        if (LogSwitch.isLogOpened()) {
-            Log.e("EglHelper", "throwEglException tid=" + Thread.currentThread().getId() + " "
+            LogSwitch.e("EglHelper", "throwEglException tid=" + Thread.currentThread().getId() + " "
                     + message);
-        }
         throw new RuntimeException(message);
     }
 
     public static void logEglErrorAsWarning(String tag, String function, int error) {
-        Log.w(tag, formatEglError(function, error));
+        LogSwitch.w(tag, formatEglError(function, error));
     }
 
     public EGLConfig getEglConfig() {
@@ -94,9 +91,7 @@ public class EGLHelper {
      * @param
      */
     public void start() {
-        if (LogSwitch.isLogOpened()) {
-            Log.w(TAG, "start() tid=" + Thread.currentThread().getId());
-        }
+        LogSwitch.w(TAG, "start() tid=" + Thread.currentThread().getId());
 
         /*
          * Get to the default display.
@@ -130,9 +125,7 @@ public class EGLHelper {
             mEglContext = null;
             throwEglException("createContext");
         }
-        if (LogSwitch.isLogOpened()) {
-            Log.w(TAG, "createContext " + mEglContext + " tid=" + Thread.currentThread().getId());
-        }
+        LogSwitch.w(TAG, "createContext " + mEglContext + " tid=" + Thread.currentThread().getId());
 
         mEglSurface = null;
     }
@@ -144,9 +137,7 @@ public class EGLHelper {
      * @return true if the surface was created successfully.
      */
     public boolean createSurface(Object nativeWindow) {
-        if (LogSwitch.isLogOpened()) {
-            Log.w(TAG, "createSurface()  tid=" + Thread.currentThread().getId());
-        }
+        LogSwitch.w(TAG, "createSurface()  tid=" + Thread.currentThread().getId());
         if (mEglDisplay == null) {
             throw new RuntimeException("eglDisplay not initialized");
         }
@@ -173,7 +164,7 @@ public class EGLHelper {
         if (mEglSurface == null || mEglSurface == EGL14.EGL_NO_SURFACE) {
             int error = EGL14.eglGetError();
             if (error == EGL14.EGL_BAD_NATIVE_WINDOW) {
-                Log.e(TAG, "createWindowSurface returned EGL_BAD_NATIVE_WINDOW.");
+                LogSwitch.e(TAG, "createWindowSurface returned EGL_BAD_NATIVE_WINDOW.");
             }
             return false;
         }
@@ -207,9 +198,7 @@ public class EGLHelper {
     }
 
     public void destroySurface() {
-        if (LogSwitch.isLogOpened()) {
-            Log.w(TAG, "destroySurface()  tid=" + Thread.currentThread().getId());
-        }
+        LogSwitch.w(TAG, "destroySurface()  tid=" + Thread.currentThread().getId());
         if (mEglSurface != null && mEglSurface != EGL14.EGL_NO_SURFACE) {
             EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE,
                     EGL14.EGL_NO_SURFACE,
@@ -222,9 +211,7 @@ public class EGLHelper {
     }
 
     public void finish() {
-        if (LogSwitch.isLogOpened()) {
-            Log.w(TAG, "finish() tid=" + Thread.currentThread().getId());
-        }
+        LogSwitch.w(TAG, "finish() tid=" + Thread.currentThread().getId());
         if (mEglContext != null) {
             if (mEGLContextFactory != null) {
                 mEGLContextFactory.destroyContext(mEglDisplay, mEglContext);

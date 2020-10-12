@@ -3,7 +3,6 @@ package com.zmy.gl.base;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -143,8 +142,7 @@ public class GLThread extends HandlerThread {
     @Override
     public void run() {
         super.run();
-        if (LogSwitch.isLogOpened())
-            Log.d(TAG, "GLThread :" + this.getName() + " exit!");
+        LogSwitch.d(TAG, "GLThread :" + this.getName() + " exit!");
     }
 
 
