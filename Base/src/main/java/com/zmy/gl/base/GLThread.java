@@ -19,7 +19,6 @@ public class GLThread extends HandlerThread {
     public static final int MSG_RENDER = 1;
     public static final int MSG_RESIZE = 2;
     public static final int MSG_DESTROY = 3;
-    private static final int MSG_UPDATE_SURFACE = 4;
     private EGLHelper mEglHelper;
     private volatile boolean isQuit;
     private Handler handler;
@@ -91,21 +90,15 @@ public class GLThread extends HandlerThread {
                             mEglHelper.swap();
                         }
                         break;
-                    case MSG_UPDATE_SURFACE: {
+                    case MSG_RESIZE: {
                         mEglHelper.createSurface(msg.obj);
                         if (render != null) {
-                            render.onSurfaceCreated(mEglHelper.getEglConfig());
                             render.onSurfaceChanged(msg.arg1, msg.arg2);
                             render.onDrawFrame();
                             mEglHelper.swap();
                         }
                         break;
                     }
-                    case MSG_RESIZE:
-                        if (render != null) {
-                            render.onSurfaceChanged(msg.arg1, msg.arg2);
-                        }
-                        break;
                     case MSG_DESTROY:
                         isQuit = true;
                         mEglHelper.destroySurface();
@@ -129,13 +122,11 @@ public class GLThread extends HandlerThread {
     public void requestInitEgl(Object nativeWindow, int width, int height) {
         sendMessageToHandler(MSG_INIT_EGL, width, height, nativeWindow, false);
     }
-
+    public void requestResize(Object nativeWindow, int width, int height) {
+        sendMessageToHandler(MSG_RESIZE,  width, height, nativeWindow, true);
+    }
     public void requestRender() {
         sendMessageToHandler(MSG_RENDER, 0, 0, null, false);
-    }
-
-    public void requestResize(int width, int height) {
-        sendMessageToHandler(MSG_RESIZE, width, height, null, false);
     }
 
     public void requestDestroy() {

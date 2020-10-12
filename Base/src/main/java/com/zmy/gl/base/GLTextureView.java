@@ -150,8 +150,9 @@ public class GLTextureView extends TextureView implements TextureView.SurfaceTex
     public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
         if (LogSwitch.isLogOpened())
             Log.d(TAG, "onSurfaceTextureSizeChanged");
-        glThread.requestResize(width, height);
-        glThread.requestRender();
+        if(glThread!=null){
+            glThread.requestResize(new Surface(surface),getMeasuredWidth(),getMeasuredHeight());
+        }
     }
 
     @Override
