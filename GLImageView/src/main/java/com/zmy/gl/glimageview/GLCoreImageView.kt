@@ -6,6 +6,8 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import com.zmy.gl.base.GLESVersion
 import com.zmy.gl.base.GLTextureView
+import com.zmy.gl.renders.GLBitmapRenderer
+import com.zmy.gl.renders.ScaleType
 import kotlin.math.min
 
 

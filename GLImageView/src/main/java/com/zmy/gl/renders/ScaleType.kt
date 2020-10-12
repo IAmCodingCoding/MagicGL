@@ -1,4 +1,4 @@
-package com.zmy.gl.glimageview
+package com.zmy.gl.renders
 
 import android.graphics.Matrix
 import android.widget.ImageView

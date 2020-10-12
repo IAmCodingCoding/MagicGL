@@ -1,72 +1,36 @@
-package com.zmy.gl.glimageview
+package com.zmy.gl.renders
 
 import android.graphics.Color
 import android.opengl.EGLConfig
 import android.opengl.GLES30.*
 import android.opengl.Matrix
 import com.zmy.gl.base.ConstantValue
-import com.zmy.gl.base.render.GLBaseRenderer
-import java.nio.Buffer
+import com.zmy.gl.base.render.GLRectRenderer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.properties.Delegates
 
-open class GLImageRenderer : GLBaseRenderer() {
-    companion object {
-        private val TAG = GLImageRenderer::class.java.simpleName
-        private const val vertexSrc = "#version 300 es\n" +
-                "layout(location=0) in vec4 aPosition;\n" +
-                "layout(location=1) in vec2 texturePosition;\n" +
-                "uniform mat4 trans;\n" +
-                "out vec2 tPosition;\n" +
-                "void main() {\n" +
-                "   tPosition = vec2(texturePosition.x,1.0f-texturePosition.y);\n" +
-                "   gl_Position = trans  *  aPosition;\n" +
-                "}\n"
-        private const val fragmentSrc = "#version 300 es\n" +
-                "precision mediump float;\n" +
-                "in vec2 tPosition;\n" +
-                "out vec4 outColor;" +
-                "uniform sampler2D sTexture;\n" +
-                "void main() {\n" +
-                "    outColor=texture(sTexture,tPosition);\n" +
-                "}\n"
-        private val elementIndex = intArrayOf(0, 1, 2, 0, 2, 3)
-        private val elementIndexBuffer =
-            ByteBuffer.allocateDirect(elementIndex.size * ConstantValue.SIZE_OF_INT)
-                .order(ByteOrder.nativeOrder())
-                .asIntBuffer()
-                .put(elementIndex).flip()
+open class GLTextureRenderer : GLRectRenderer() {
+    private val TAG = GLTextureRenderer::class.java.simpleName
+    private val vertexData = floatArrayOf(
+        1.0f, 1.0f, 1.0f,/*顶点坐标--右上*/  1.0f, 1.0f,/*纹理坐标--右上*/
+        1.0f, -1.0f, 1.0f,/*顶点坐标--右下*/  1.0f, 0.0f,/*纹理坐标--右下*/
+        -1.0f, -1.0f, 1.0f,/*顶点坐标--左下*/0.0f, 0.0f,/*纹理坐标--左下*/
+        -1.0f, 1.0f, 1.0f,/*顶点坐标--左上*/  0.0f, 1.0f/*纹理坐标--左上*/
+    )
 
-
-        private val vertexData = floatArrayOf(
-            1.0f, 1.0f, 1.0f,/*顶点坐标--右上*/  1.0f, 1.0f,/*纹理坐标--右上*/
-            1.0f, -1.0f, 1.0f,/*顶点坐标--右下*/  1.0f, 0.0f,/*纹理坐标--右下*/
-            -1.0f, -1.0f, 1.0f,/*顶点坐标--左下*/0.0f, 0.0f,/*纹理坐标--左下*/
-            -1.0f, 1.0f, 1.0f,/*顶点坐标--左上*/  0.0f, 1.0f/*纹理坐标--左上*/
-        )
-
-        private val vertexBuffer =
-            ByteBuffer.allocateDirect(vertexData.size * ConstantValue.SIZE_OF_FLOAT)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
-                .put(vertexData).flip()
-    }
-
-    private var width: Int = 0
-    private var height: Int = 0
-    private val texture = intArrayOf(0)
-    private var program: Int = 0
-    private var fragmentShader = 0
-    private var vertexShader = 0
-    private val vao = intArrayOf(0)
-    private val vbo = intArrayOf(0, 0)
+    private val vertexBuffer =
+        ByteBuffer.allocateDirect(vertexData.size * ConstantValue.SIZE_OF_FLOAT)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(vertexData).flip()
+    protected lateinit var textures: IntArray
     var backgroundColor = Color.TRANSPARENT
 
     var scaleType: ScaleType = ScaleType.FIT_CENTER
         @Synchronized set
 
-    var image: ImageData? by Delegates.observable<ImageData?>(null) { _, _, _ ->
+    var image: TextureData? by Delegates.observable<TextureData?>(null) { _, _, _ ->
         needStoreImage = true
     }
         @Synchronized set
@@ -84,6 +48,10 @@ open class GLImageRenderer : GLBaseRenderer() {
         handleScaleType()
         storeTexture()
         setTrans()
+        draw()
+    }
+
+    protected open fun draw() {
         glUseProgram(program)
         val r = Color.red(backgroundColor).toFloat() / 255F
         val g = Color.green(backgroundColor).toFloat() / 255F
@@ -93,11 +61,12 @@ open class GLImageRenderer : GLBaseRenderer() {
         glClear(GL_COLOR_BUFFER_BIT)
         image?.let {
             glBindVertexArray(vao[0])
-            glBindTexture(GL_TEXTURE_2D, texture[0])
+            glBindTexture(GL_TEXTURE_2D, textures[0])
             glDrawElements(GL_TRIANGLES, elementIndex.size, GL_UNSIGNED_INT, 0)
             glBindVertexArray(0)
             glBindTexture(GL_TEXTURE_2D, 0)
         }
+        glUseProgram(0)
     }
 
     @Synchronized
@@ -119,39 +88,20 @@ open class GLImageRenderer : GLBaseRenderer() {
     private fun storeTexture() {
         image?.takeIf { needStoreImage }
             ?.let {
-                if (it.format != 0) {
-                    glBindTexture(GL_TEXTURE_2D, texture[0])
-                    it.buffer.position(0)
-                    glTexImage2D(
-                        GL_TEXTURE_2D,
-                        0,
-                        it.format,
-                        it.width,
-                        it.height,
-                        0,
-                        it.format,
-                        it.type,
-                        it.buffer
-                    )
-                    glBindTexture(GL_TEXTURE_2D, 0)
+                if (it.getFormat() != 0) {
+                    it.uploadToTexture(textures)
                 }
                 needStoreImage = false
             }
-        glActiveTexture(GL_TEXTURE0)
     }
 
-    fun getImageWidth() = image?.width ?: 0
-    fun getImageHeight() = image?.height ?: 0
+    fun getImageWidth() = image?.getWidth() ?: 0
+    fun getImageHeight() = image?.getHeight() ?: 0
 
-    override fun onSurfaceChanged(width: Int, height: Int) {
-        this.width = width
-        this.height = height
-    }
-
-    private fun handleScaleType() {
+    protected fun handleScaleType() {
         image?.let {
-            val imageWidth = it.width
-            val imageHeight = it.height
+            val imageWidth = it.getWidth()
+            val imageHeight = it.getHeight()
             when (scaleType) {
                 ScaleType.FIT_XY -> glViewport(0, 0, width, height)
                 ScaleType.FIT_CENTER -> {
@@ -218,7 +168,7 @@ open class GLImageRenderer : GLBaseRenderer() {
                     }
                 }
                 ScaleType.MATRIX -> {
-                    glViewport(0, height-imageHeight, imageWidth, imageHeight)
+                    glViewport(0, height - imageHeight, imageWidth, imageHeight)
                 }
                 ScaleType.CENTER -> {
                     glViewport(
@@ -284,27 +234,18 @@ open class GLImageRenderer : GLBaseRenderer() {
     }
 
     override fun onSurfaceCreated(config: EGLConfig?) {
-        vertexShader = createShader(
-            GL_VERTEX_SHADER, vertexSrc
-        )
-        if (vertexShader == 0) return
-        fragmentShader = createShader(
-            GL_FRAGMENT_SHADER, fragmentSrc
-        )
-        if (fragmentShader == 0) return
-        program = createProgram(vertexShader, fragmentShader)
-        if (program == 0) return
-        initBuffers()
+        super.onSurfaceCreated(config)
         initTexture()
         needStoreDegree = true
         needStoreImage = true
     }
 
     open fun initTexture() {
+        textures = intArrayOf(0)
         glUseProgram(program)
-        glGenTextures(1, texture, 0)
+        glGenTextures(1, textures, 0)
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, texture[0])
+        glBindTexture(GL_TEXTURE_2D, textures[0])
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
@@ -315,8 +256,7 @@ open class GLImageRenderer : GLBaseRenderer() {
         glUseProgram(0)
     }
 
-
-    open fun initBuffers() {
+    override fun initBuffers() {
         glGenVertexArrays(1, vao, 0)
         glGenBuffers(2, vbo, 0)
         glBindVertexArray(vao[0])
@@ -343,19 +283,42 @@ open class GLImageRenderer : GLBaseRenderer() {
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1])
         glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER, elementIndex.size * ConstantValue.SIZE_OF_INT, elementIndexBuffer,
+            GL_ELEMENT_ARRAY_BUFFER,
+            elementIndex.size * ConstantValue.SIZE_OF_INT,
+            elementIndexBuffer,
             GL_STATIC_DRAW
         )
         glBindVertexArray(0)
     }
 
+    override fun getFragmentSrc(): String {
+        return "#version 300 es\n" +
+                "precision mediump float;\n" +
+                "in vec2 tPosition;\n" +
+                "out vec4 outColor;" +
+                "uniform sampler2D sTexture;\n" +
+                "void main() {\n" +
+                "    outColor=texture(sTexture,tPosition);\n" +
+                "}\n"
+    }
 
+    override fun getVertexSrc(): String {
+        return "#version 300 es\n" +
+                "layout(location=0) in vec4 aPosition;\n" +
+                "layout(location=1) in vec2 texturePosition;\n" +
+                "uniform mat4 trans;\n" +
+                "out vec2 tPosition;\n" +
+                "void main() {\n" +
+                "   tPosition = vec2(texturePosition.x,1.0f-texturePosition.y);\n" +
+                "   gl_Position = trans  *  aPosition;\n" +
+                "}\n"
+    }
 }
 
-data class ImageData(
-    val buffer: Buffer,
-    val width: Int,
-    val height: Int,
-    val format: Int,
-    val type: Int
-)
+interface TextureData {
+    fun getWidth(): Int
+    fun getHeight(): Int
+    fun getFormat(): Int
+    fun getType(): Int
+    fun uploadToTexture(textures: IntArray)
+}

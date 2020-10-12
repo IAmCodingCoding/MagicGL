@@ -11,7 +11,9 @@ import com.zmy.gl.base.GLThread
 import com.zmy.gl.base.egl.config.PBufferConfigChooser
 import com.zmy.gl.base.egl.context.PBufferContextFactory
 import com.zmy.gl.base.egl.surface.PBufferSurfaceFactory
-import com.zmy.gl.glimageview.GLBitmapRenderer
+import com.zmy.gl.renders.BitmapData
+import com.zmy.gl.renders.GLPixelRawRenderer
+import com.zmy.gl.renders.PixelData
 import kotlinx.android.synthetic.main.activity_offscreen_render.*
 import java.nio.ByteBuffer
 
@@ -21,11 +23,21 @@ class OffscreenRenderActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_offscreen_render)
-        var render = TestRender()
-        val imageStream=assets.open("test.jpg")
+        var render = OffScreenRender()
+        val imageStream = assets.open("test.jpg")
         val bm = BitmapFactory.decodeStream(imageStream)
         imageStream.close()
-        render.setImage(bm)
+        val buffer = ByteBuffer.allocateDirect(bm.byteCount)
+        bm.copyPixelsToBuffer(buffer)
+        render.setImage(
+            PixelData(
+                buffer,
+                bm.width,
+                bm.height,
+                BitmapData.getGLPixelFormat(bm),
+                BitmapData.getGLPixelType(bm)
+            )
+        )
         glThread = GLThread(
             null,
             PBufferConfigChooser(GLESVersion.VERSION3X, 8, 8, 8, 8, 16, 0),
@@ -43,16 +55,26 @@ class OffscreenRenderActivity : AppCompatActivity() {
         glThread.requestDestroy()
     }
 
-    inner class TestRender : GLBitmapRenderer() {
+    inner class OffScreenRender : GLPixelRawRenderer() {
 
         private val colorAttachment = intArrayOf(0)
         private val fbo = intArrayOf(0)
+        override fun getVertexSrc(): String {
+            return "#version 300 es\n" +
+                    "layout(location=0) in vec4 aPosition;\n" +
+                    "layout(location=1) in vec2 texturePosition;\n" +
+                    "uniform mat4 trans;\n" +
+                    "out vec2 tPosition;\n" +
+                    "void main() {\n" +
+                    "   tPosition = vec2(texturePosition.x,texturePosition.y);\n" +
+                    "   gl_Position = trans  *  aPosition;\n" +
+                    "}\n"
+        }
 
         private fun initFrameBuffer() {
             GLES20.glGenFramebuffers(1, fbo, 0)
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fbo[0])
             GLES20.glGenTextures(1, colorAttachment, 0)
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE1)
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, colorAttachment[0])
             GLES20.glTexParameteri(
                 GLES20.GL_TEXTURE_2D,
@@ -101,10 +123,9 @@ class OffscreenRenderActivity : AppCompatActivity() {
             }
         }
 
-
         override fun initTexture() {
-            super.initTexture()
             initFrameBuffer()
+            super.initTexture()
         }
 
         override fun onDrawFrame() {
@@ -122,7 +143,9 @@ class OffscreenRenderActivity : AppCompatActivity() {
             val bm = Bitmap.createBitmap(getImageWidth(), getImageHeight(), Bitmap.Config.ARGB_8888)
             bm.copyPixelsFromBuffer(buffer)
             if (!isDestroyed) {
-                image_view.setImageBitmap(bm)
+                runOnUiThread {
+                    image_view.setImageBitmap(bm)
+                }
             }
         }
     }

@@ -11,7 +11,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".YUVActivity"
-            android:screenOrientation="landscape" />
+            android:configChanges="orientation|keyboardHidden|screenSize" />
         <activity android:name=".OffscreenRenderActivity" />
         <activity android:name=".GLImageViewActivity" />
         <activity android:name=".GuideActivity">
