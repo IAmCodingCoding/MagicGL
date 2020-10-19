@@ -4,17 +4,17 @@ import android.graphics.Bitmap
 import android.opengl.GLES20.*
 import android.opengl.GLUtils
 
-open class GLBitmapRenderer : GLTextureRenderer() {
+open class GLBitmapRenderer : GLTexture2DRenderer() {
     fun setImage(bitmap: Bitmap) {
-        this.image = BitmapData(bitmap)
+        this.texture = BitmapData(bitmap)
     }
 
 }
 
-
-class BitmapData(private val bitmap: Bitmap) : TextureData {
+class BitmapData(private val bitmap: Bitmap, needToStore: Boolean = true) :
+    PixelData(null, 0, 0, bitmap.width, bitmap.height, needToStore) {
     companion object {
-         fun getGLPixelFormat(bitmap: Bitmap): Int {
+        fun getGLPixelFormat(bitmap: Bitmap): Int {
             return when (bitmap.config) {
                 Bitmap.Config.ARGB_8888 -> GL_RGBA
                 Bitmap.Config.ALPHA_8 -> GL_ALPHA
@@ -24,7 +24,7 @@ class BitmapData(private val bitmap: Bitmap) : TextureData {
             }
         }
 
-         fun getGLPixelType(bitmap: Bitmap): Int {
+        fun getGLPixelType(bitmap: Bitmap): Int {
             return when (bitmap.config) {
                 Bitmap.Config.ARGB_8888 -> GL_UNSIGNED_BYTE
                 Bitmap.Config.ALPHA_8 -> GL_UNSIGNED_BYTE
@@ -35,18 +35,11 @@ class BitmapData(private val bitmap: Bitmap) : TextureData {
         }
     }
 
-    override fun getWidth() = bitmap.width
-
-    override fun getHeight() = bitmap.height
-
-    override fun getFormat() = getGLPixelFormat(bitmap)
-
-    override fun getType() = getGLPixelType(bitmap)
-
-    override fun uploadToTexture(textures: IntArray) {
+    override fun upload() {
+        if (!needToStore) return
         glBindTexture(GL_TEXTURE_2D, textures[0])
-        GLUtils.texImage2D(GL_TEXTURE_2D, 0, getFormat(), bitmap, 0)
+        GLUtils.texImage2D(GL_TEXTURE_2D, 0, getGLPixelFormat(bitmap), bitmap, 0)
         glBindTexture(GL_TEXTURE_2D, 0)
+        needToStore=false
     }
-
 }

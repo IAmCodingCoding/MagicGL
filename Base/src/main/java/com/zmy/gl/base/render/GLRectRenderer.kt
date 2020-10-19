@@ -81,16 +81,16 @@ open class GLRectRenderer : GLBaseRenderer() {
             vertexBuffer,
             GL_STATIC_DRAW
         )
-        val aPosition = glGetAttribLocation(program, "aPosition")
+        val vertexCoordinate = glGetAttribLocation(program, "aPosition")
         glVertexAttribPointer(
-            aPosition,
+            vertexCoordinate,
             3,
             GL_FLOAT,
             false,
             3 * ConstantValue.SIZE_OF_FLOAT,
             0
         )
-        glEnableVertexAttribArray(aPosition)
+        glEnableVertexAttribArray(vertexCoordinate)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1])
         glBufferData(

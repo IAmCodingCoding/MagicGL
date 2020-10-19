@@ -10,32 +10,26 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.properties.Delegates
 
-open class GLTextureRenderer : GLRectRenderer() {
-    private val TAG = GLTextureRenderer::class.java.simpleName
-    private val vertexData = floatArrayOf(
-        1.0f, 1.0f, 1.0f,/*顶点坐标--右上*/  1.0f, 1.0f,/*纹理坐标--右上*/
-        1.0f, -1.0f, 1.0f,/*顶点坐标--右下*/  1.0f, 0.0f,/*纹理坐标--右下*/
-        -1.0f, -1.0f, 1.0f,/*顶点坐标--左下*/0.0f, 0.0f,/*纹理坐标--左下*/
-        -1.0f, 1.0f, 1.0f,/*顶点坐标--左上*/  0.0f, 1.0f/*纹理坐标--左上*/
+open class GLTexture2DRenderer : GLRectRenderer() {
+    private val TAG = GLTexture2DRenderer::class.java.simpleName
+    private val textureCoordinate = floatArrayOf(
+        1.0f, 1.0f,/*纹理坐标--右上*/
+        1.0f, 0.0f,/*纹理坐标--右下*/
+        0.0f, 0.0f,/*纹理坐标--左下*/
+        0.0f, 1.0f/*纹理坐标--左上*/
     )
 
-    private val vertexBuffer =
-        ByteBuffer.allocateDirect(vertexData.size * ConstantValue.SIZE_OF_FLOAT)
+    private val textureCoordinateBuffer =
+        ByteBuffer.allocateDirect(textureCoordinate.size * ConstantValue.SIZE_OF_FLOAT)
             .order(ByteOrder.nativeOrder())
             .asFloatBuffer()
-            .put(vertexData).flip()
-    protected lateinit var textures: IntArray
+            .put(textureCoordinate).flip()
     var backgroundColor = Color.TRANSPARENT
 
     var scaleType: ScaleType = ScaleType.FIT_CENTER
         @Synchronized set
 
-    var image: TextureData? by Delegates.observable<TextureData?>(null) { _, _, _ ->
-        needStoreImage = true
-    }
-        @Synchronized set
-    private var needStoreImage = true
-        @Synchronized set
+    var texture: TextureData? = null
 
     var degree: Float by Delegates.observable(0f) { _, _, _ ->
         needStoreDegree = true
@@ -46,27 +40,27 @@ open class GLTextureRenderer : GLRectRenderer() {
 
     override fun onDrawFrame() {
         handleScaleType()
-        storeTexture()
+        texture?.upload()
         setTrans()
         draw()
     }
 
     protected open fun draw() {
-        glUseProgram(program)
         val r = Color.red(backgroundColor).toFloat() / 255F
         val g = Color.green(backgroundColor).toFloat() / 255F
         val b = Color.blue(backgroundColor).toFloat() / 255F
         val a = Color.alpha(backgroundColor).toFloat() / 255F
         glClearColor(r, g, b, a)
         glClear(GL_COLOR_BUFFER_BIT)
-        image?.let {
+        texture?.let {
+            glUseProgram(program)
             glBindVertexArray(vao[0])
-            glBindTexture(GL_TEXTURE_2D, textures[0])
+            it.bindTexture()
             glDrawElements(GL_TRIANGLES, elementIndex.size, GL_UNSIGNED_INT, 0)
+            it.unbindTexture()
             glBindVertexArray(0)
-            glBindTexture(GL_TEXTURE_2D, 0)
+            glUseProgram(0)
         }
-        glUseProgram(0)
     }
 
     @Synchronized
@@ -84,24 +78,15 @@ open class GLTextureRenderer : GLRectRenderer() {
             }
     }
 
-    @Synchronized
-    private fun storeTexture() {
-        image?.takeIf { needStoreImage }
-            ?.let {
-                if (it.getFormat() != 0) {
-                    it.uploadToTexture(textures)
-                }
-                needStoreImage = false
-            }
-    }
 
-    fun getImageWidth() = image?.getWidth() ?: 0
-    fun getImageHeight() = image?.getHeight() ?: 0
+    fun getImageWidth() = texture?.width ?: 0
+
+    fun getImageHeight() = texture?.height ?: 0
 
     protected fun handleScaleType() {
-        image?.let {
-            val imageWidth = it.getWidth()
-            val imageHeight = it.getHeight()
+        texture?.let {
+            val imageWidth = it.width
+            val imageHeight = it.height
             when (scaleType) {
                 ScaleType.FIT_XY -> glViewport(0, 0, width, height)
                 ScaleType.FIT_CENTER -> {
@@ -230,64 +215,63 @@ open class GLTextureRenderer : GLRectRenderer() {
                 }
             }
         }
-
     }
 
     override fun onSurfaceCreated(config: EGLConfig?) {
         super.onSurfaceCreated(config)
         initTexture()
+        textureLinkToProgram()
+        texture?.needToStore = true
         needStoreDegree = true
-        needStoreImage = true
     }
 
-    open fun initTexture() {
-        textures = intArrayOf(0)
-        glUseProgram(program)
-        glGenTextures(1, textures, 0)
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, textures[0])
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-        val textureLocation = glGetUniformLocation(program, "sTexture")
-        glUniform1i(textureLocation, 0)
-        glBindTexture(GL_TEXTURE_2D, 0)
-        glUseProgram(0)
+    protected open fun initTexture() {
+        texture?.initTexture()
+    }
+
+    protected open fun getTextureNames() = arrayOf("sTexture")
+
+    protected open fun textureLinkToProgram() {
+        texture?.let {
+            val textureNames = getTextureNames()
+            glUseProgram(program)
+            it.textures.forEachIndexed { index, texture ->
+                glActiveTexture(GL_TEXTURE0 + index)
+                glBindTexture(GL_TEXTURE_2D, texture)
+                val name = textureNames[index]
+                val location = glGetUniformLocation(program, name)
+                if (location >= 0) {
+                    glUniform1i(location, index)
+                }
+            }
+            glUseProgram(0)
+            glBindTexture(GL_TEXTURE_2D, 0)
+        }
     }
 
     override fun initBuffers() {
-        glGenVertexArrays(1, vao, 0)
-        glGenBuffers(2, vbo, 0)
+        super.initBuffers()
         glBindVertexArray(vao[0])
-        glBindBuffer(GL_ARRAY_BUFFER, vbo[0])
+        val buffer = intArrayOf(0)
+        glGenBuffers(1, buffer, 0)
+        glBindBuffer(GL_ARRAY_BUFFER, buffer[0])
         glBufferData(
             GL_ARRAY_BUFFER,
-            vertexData.size * ConstantValue.SIZE_OF_FLOAT,
-            vertexBuffer,
+            textureCoordinate.size * ConstantValue.SIZE_OF_FLOAT,
+            textureCoordinateBuffer,
             GL_STATIC_DRAW
         )
-        val aPosition = glGetAttribLocation(program, "aPosition")
-        val texturePosition = glGetAttribLocation(program, "texturePosition")
-        glVertexAttribPointer(aPosition, 3, GL_FLOAT, false, 5 * ConstantValue.SIZE_OF_FLOAT, 0)
-        glEnableVertexAttribArray(aPosition)
+        val location = glGetAttribLocation(program, "texturePosition")
         glVertexAttribPointer(
-            texturePosition,
+            location,
             2,
             GL_FLOAT,
             false,
-            5 * ConstantValue.SIZE_OF_FLOAT,
-            3 * ConstantValue.SIZE_OF_FLOAT
+            2 * ConstantValue.SIZE_OF_FLOAT,
+            0
         )
-        glEnableVertexAttribArray(texturePosition)
+        glEnableVertexAttribArray(location)
         glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[1])
-        glBufferData(
-            GL_ELEMENT_ARRAY_BUFFER,
-            elementIndex.size * ConstantValue.SIZE_OF_INT,
-            elementIndexBuffer,
-            GL_STATIC_DRAW
-        )
         glBindVertexArray(0)
     }
 
@@ -315,10 +299,15 @@ open class GLTextureRenderer : GLRectRenderer() {
     }
 }
 
-interface TextureData {
-    fun getWidth(): Int
-    fun getHeight(): Int
-    fun getFormat(): Int
-    fun getType(): Int
-    fun uploadToTexture(textures: IntArray)
+abstract class TextureData(val width: Int, val height: Int, var needToStore: Boolean = true) {
+    var textures: IntArray = intArrayOf(0)
+    abstract fun initTexture()
+
+    abstract fun upload()
+
+    abstract fun bindTexture()
+
+    open fun unbindTexture() {
+        glBindTexture(GL_TEXTURE_2D, 0)
+    }
 }

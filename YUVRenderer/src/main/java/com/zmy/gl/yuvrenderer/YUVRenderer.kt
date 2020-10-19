@@ -1,56 +1,18 @@
 package com.zmy.gl.yuvrenderer
 
-import android.graphics.Color
 import android.opengl.GLES30.*
-import com.zmy.gl.renders.GLTextureRenderer
+import com.zmy.gl.renders.GLTexture2DRenderer
 import com.zmy.gl.renders.TextureData
 import java.nio.Buffer
 
 
-class YUVRenderer : GLTextureRenderer() {
+class YUVRenderer : GLTexture2DRenderer() {
 
     private val TAG = YUVRenderer::class.java.simpleName
 
-    private val textureName = arrayOf("texture_y", "texture_u", "texture_v");
 
-    override fun draw() {
-        glUseProgram(program)
-        val r = Color.red(backgroundColor).toFloat() / 255F
-        val g = Color.green(backgroundColor).toFloat() / 255F
-        val b = Color.blue(backgroundColor).toFloat() / 255F
-        val a = Color.alpha(backgroundColor).toFloat() / 255F
-        glClearColor(r, g, b, a)
-        glClear(GL_COLOR_BUFFER_BIT)
-        image?.let {
-            glBindVertexArray(vao[0])
-
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, textures[0])
-            glActiveTexture(GL_TEXTURE1)
-            glBindTexture(GL_TEXTURE_2D, textures[1])
-            glActiveTexture(GL_TEXTURE2)
-            glBindTexture(GL_TEXTURE_2D, textures[2])
-
-            glDrawElements(GL_TRIANGLES, elementIndex.size, GL_UNSIGNED_INT, 0)
-            glBindVertexArray(0)
-        }
-    }
-
-    override fun initTexture() {
-        textures = intArrayOf(0, 0, 0)
-        glUseProgram(program)
-        glGenTextures(3, textures, 0)
-        textures.forEachIndexed { index, texture ->
-            glActiveTexture(GL_TEXTURE0 + index)
-            glBindTexture(GL_TEXTURE_2D, texture)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-            val textureLocation = glGetUniformLocation(program, textureName[index])
-            glUniform1i(textureLocation, index)
-        }
-        glBindTexture(GL_TEXTURE_2D, 0)
+    override fun getTextureNames(): Array<String> {
+        return arrayOf("texture_y", "texture_u", "texture_v");
     }
 
     override fun getVertexSrc(): String {
@@ -93,22 +55,26 @@ class YUVRenderer : GLTextureRenderer() {
     }
 }
 
-data class YUVData(
+class YUVData(
     private val y: Buffer,
     private val u: Buffer,
-    private val v: Buffer,
-    private val width: Int,
-    private val height: Int
-) : TextureData {
-    override fun getWidth() = width
+    private val v: Buffer, width: Int, height: Int, needToStore: Boolean = true,
+) : TextureData(width, height, needToStore) {
+    override fun initTexture() {
+        textures = intArrayOf(0, 0, 0)
+        glGenTextures(3, textures, 0)
+        textures.forEachIndexed { index, texture ->
+            glActiveTexture(GL_TEXTURE0 + index)
+            glBindTexture(GL_TEXTURE_2D, texture)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        }
+        glBindTexture(GL_TEXTURE_2D, 0)
+    }
 
-    override fun getHeight() = height
-
-    override fun getFormat() = GL_LUMINANCE
-
-    override fun getType() = GL_UNSIGNED_BYTE
-
-    override fun uploadToTexture(textures: IntArray) {
+    override fun upload() {
         val data = arrayOf(y, u, v)
         val widthValue = arrayOf(width, width / 2, width / 2)
         val heightValue = arrayOf(height, height / 2, height / 2)
@@ -126,6 +92,13 @@ data class YUVData(
                 buffer
             )
             glBindTexture(GL_TEXTURE_2D, 0)
+        }
+    }
+
+    override fun bindTexture() {
+        textures.forEachIndexed { index, texture ->
+            glActiveTexture(GL_TEXTURE0 + index)
+            glBindTexture(GL_TEXTURE_2D, texture)
         }
     }
 

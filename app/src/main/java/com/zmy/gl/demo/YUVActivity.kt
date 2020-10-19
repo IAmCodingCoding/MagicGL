@@ -31,7 +31,7 @@ class YUVActivity : AppCompatActivity() {
         y.flip()
         u.flip()
         v.flip()
-        renderer.image = data
+        renderer.texture = data
 
         texture_view.setRender(renderer)
     }

@@ -32,10 +32,10 @@ class OffscreenRenderActivity : AppCompatActivity() {
         render.setImage(
             PixelData(
                 buffer,
-                bm.width,
-                bm.height,
                 BitmapData.getGLPixelFormat(bm),
-                BitmapData.getGLPixelType(bm)
+                BitmapData.getGLPixelType(bm),
+                bm.width,
+                bm.height
             )
         )
         glThread = GLThread(
