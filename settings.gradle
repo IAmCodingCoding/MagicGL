@@ -1,4 +1,4 @@
-include ':YUVRenderer'
+include ':MagicRenderer'
 include ':app'
 include ':GLImageView'
 include ':Base'

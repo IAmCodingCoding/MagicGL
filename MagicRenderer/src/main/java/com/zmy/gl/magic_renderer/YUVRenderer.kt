@@ -1,8 +1,6 @@
-package com.zmy.gl.yuvrenderer
+package com.zmy.gl.magic_renderer
 
 import android.opengl.GLES30.*
-import com.zmy.gl.renders.GLTexture2DRenderer
-import com.zmy.gl.renders.TextureData
 import java.nio.Buffer
 
 

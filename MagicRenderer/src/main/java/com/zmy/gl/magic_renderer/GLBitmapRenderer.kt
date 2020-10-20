@@ -1,4 +1,4 @@
-package com.zmy.gl.renders
+package com.zmy.gl.magic_renderer
 
 import android.graphics.Bitmap
 import android.opengl.GLES20.*

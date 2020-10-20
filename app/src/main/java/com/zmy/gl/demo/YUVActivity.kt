@@ -2,8 +2,8 @@ package com.zmy.gl.demo
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.zmy.gl.yuvrenderer.YUVData
-import com.zmy.gl.yuvrenderer.YUVRenderer
+import com.zmy.gl.magic_renderer.YUVData
+import com.zmy.gl.magic_renderer.YUVRenderer
 import kotlinx.android.synthetic.main.activity_y_u_v.*
 import java.nio.ByteBuffer
 

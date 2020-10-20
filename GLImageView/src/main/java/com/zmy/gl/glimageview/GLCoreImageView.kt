@@ -6,15 +6,13 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import com.zmy.gl.base.GLESVersion
 import com.zmy.gl.base.GLTextureView
-import com.zmy.gl.renders.GLBitmapRenderer
-import com.zmy.gl.renders.ScaleType
 import kotlin.math.min
 
 
 internal class GLCoreImageView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : GLTextureView(context, attrs, defStyleAttr) {
-    private var render = GLBitmapRenderer()
+    private var render = com.zmy.gl.magic_renderer.GLBitmapRenderer()
 
     init {
         isOpaque = false
@@ -58,7 +56,7 @@ internal class GLCoreImageView @JvmOverloads constructor(
         requestRender()
     }
 
-    fun setScaleType(type: ScaleType) {
+    fun setScaleType(type: com.zmy.gl.magic_renderer.ScaleType) {
         render.scaleType = type
         requestRender()
     }

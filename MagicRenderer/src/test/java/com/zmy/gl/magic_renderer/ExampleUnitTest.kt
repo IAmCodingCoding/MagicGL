@@ -1,4 +1,4 @@
-package com.zmy.gl.yuvrenderer
+package com.zmy.gl.magic_renderer
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

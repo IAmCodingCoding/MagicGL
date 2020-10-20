@@ -11,9 +11,9 @@ import com.zmy.gl.base.LogSwitch
 import com.zmy.gl.base.egl.config.PBufferConfigChooser
 import com.zmy.gl.base.egl.context.PBufferContextFactory
 import com.zmy.gl.base.egl.surface.PBufferSurfaceFactory
-import com.zmy.gl.renders.BitmapData
-import com.zmy.gl.renders.GLPixelRawRenderer
-import com.zmy.gl.renders.PixelData
+import com.zmy.gl.magic_renderer.BitmapData
+import com.zmy.gl.magic_renderer.GLPixelRawRenderer
+import com.zmy.gl.magic_renderer.PixelData
 import kotlinx.android.synthetic.main.activity_offscreen_render.*
 import java.nio.ByteBuffer
 
